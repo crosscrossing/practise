@@ -810,6 +810,43 @@ public:
         }
         return result;
     }
+
+//387
+public:
+    int firstUniqChar(string s) {
+        if (s.empty()) {
+            return -1;
+        }
+        int pos[26] = {};
+        memset(pos, -1, sizeof(int) * 26);
+
+        //比较大小
+        for (int i = 0; i < s.size(); i++) {
+            if (pos[s[i] - 'a'] == -1) {
+                pos[s[i] - 'a'] = i;
+            } else {
+                pos[s[i] - 'a'] = -2;
+            }
+        }
+        //取最小值
+        int min = -1;
+        for (auto &i : pos) {
+            if (i >= 0) {
+                if (min > -1) {
+                    min = i > min ? min : i;
+                } else {
+                    min = i;
+                }
+            }
+        }
+        return min;
+    }
+
+//32
+public:
+    int longestValidParentheses(string s) {
+
+    }
 };
 
 int main() {
@@ -916,9 +953,11 @@ int main() {
 
     cout << s.findTheDifference("abcdabcd", "abcdedbac") << endl;
 
-    vector<int> stairs{1,100,1,2,100,100,7,2,100};
+    vector<int> stairs{1, 100, 1, 2, 100, 100, 7, 2, 100};
     cout << s.minCostClimbingStairs(stairs) << endl;
 
     s.zigzagLevelOrder(t6);
+
+    cout << s.firstUniqChar("abcdeaf") << endl;
     return 0;
 }
