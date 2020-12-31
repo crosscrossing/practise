@@ -743,15 +743,16 @@ public:
 
 // 动态规划：找上楼最小消耗，一次最多走两步
 public:
-    int minCostClimbingStairs(vector<int>& cost) {
+    int minCostClimbingStairs(vector<int> &cost) {
         vector<int> costSum(cost.size(), 0);
         // init
         costSum[0] = cost[0];
         costSum[1] = cost[1];
         for (int i = 2; i < cost.size(); i++) {
-            costSum[i] = cost[i] + (costSum[i-2] > costSum[i-1] ? costSum[i-1] : costSum[i-2]);
+            costSum[i] = cost[i] + (costSum[i - 2] > costSum[i - 1] ? costSum[i - 1] : costSum[i - 2]);
         }
-        return costSum[cost.size()-2] > costSum[cost.size()-1] ? costSum[cost.size()-1] : costSum[cost.size()-2];
+        return costSum[cost.size() - 2] > costSum[cost.size() - 1] ? costSum[cost.size() - 1] : costSum[cost.size() -
+                                                                                                        2];
     }
 
     int climbStairs(int n) {
@@ -763,24 +764,24 @@ public:
         ways[0] = 1;
         ways[1] = 2;
         for (int i = 2; i < ways.size(); i++) {
-            ways[i] = ways[i-1] + ways[i-2];
+            ways[i] = ways[i - 1] + ways[i - 2];
         }
-        return ways[n-1];
+        return ways[n - 1];
     }
 
 //[103] 二叉树的锯齿形层序遍历
 public:
-    vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
-        deque<TreeNode*> inverse, reverse;
+    vector<vector<int>> zigzagLevelOrder(TreeNode *root) {
+        deque<TreeNode *> inverse, reverse;
         vector<vector<int>> result;
 
         //init
         inverse.push_back(root);
-        for(int i = 0; !inverse.empty() || !reverse.empty(); i++) {
+        for (int i = 0; !inverse.empty() || !reverse.empty(); i++) {
             vector<int> level;
             if (i % 2 == 0) {
                 while (!inverse.empty()) {
-                    TreeNode* node = inverse.back();
+                    TreeNode *node = inverse.back();
                     level.push_back(node->val);
                     inverse.pop_back();
                     if (node->left) {
@@ -790,10 +791,9 @@ public:
                         reverse.push_front(node->right);
                     }
                 }
-            }
-            else {
+            } else {
                 while (!reverse.empty()) {
-                    TreeNode* node = reverse.front();
+                    TreeNode *node = reverse.front();
                     level.push_back(node->val);
                     reverse.pop_front();
                     if (node->right) {
@@ -845,8 +845,145 @@ public:
 //32
 public:
     int longestValidParentheses(string s) {
-
+        vector<int> longestValid(s.size(), 0);
+        for (int i = 0; i < s.size(); i++) {
+            switch (s[i]) {
+                case '(':
+                    break;
+                case ')':
+                    if (i - 1 < 0) {
+                        break;
+                    }
+                    switch (s[i - 1]) {
+                        case '(':
+                            longestValid[i] += 2;
+                            if (i - 2 < 0) {
+                                break;
+                            }
+                            longestValid[i] += longestValid[i - 2];
+                            break;
+                        case ')':
+                            int prev = i - longestValid[i - 1] - 1;
+                            if (prev < 0) {
+                                break;
+                            }
+                            switch (s[prev]) {
+                                case '(':
+                                    longestValid[i] = longestValid[i - 1] + 2;
+                                    if (prev - 1 > 0) {
+                                        longestValid[i] += longestValid[prev - 1];
+                                    }
+                                case ')':
+                                    break;
+                            }
+                            break;
+                    }
+                    break;
+            }
+        }
+        int max = 0;
+        for (auto &v : longestValid) {
+            max = max > v ? max : v;
+        }
+        return max;
     }
+
+//135
+public:
+    int candy(vector<int> &ratings) {
+        vector<int> candies(ratings.size(), 1);
+        for (int i = 0; i + 1 < ratings.size(); i++) {
+            if (ratings[i] < ratings[i + 1]) {
+                candies[i + 1] = candies[i] + 1;
+            }
+            if (ratings[i] > ratings[i + 1] && candies[i] <= candies[i + 1]) {
+                candies[i]++;
+            }
+        }
+        for (int i = ratings.size() - 2; i >= 0; i--) {
+            if (ratings[i] > ratings[i + 1] && candies[i] <= candies[i + 1]) {
+                candies[i] = candies[i + 1] + 1;
+            }
+        }
+        int sum = 0;
+        for (auto &i : candies) {
+            sum += i;
+        }
+        return sum;
+    }
+
+//188
+public:
+    int maxProfit(int times, vector<int> &prices) {
+        if (prices.empty()) {
+            return 0;
+        }
+        vector<vector<vector<int>>> income = {{{0, 0}, {-prices[0]}}}; //income[天数][交易次数][当前持股]
+        for (int i = 0; i < prices.size(); i++) {
+            for (int j = 0; j <= times; j++) {
+                // [i天][j次交易][持股] = max([i-1][j-1][不持股]-当天价格, [i-1][j][持股]) 新买或者已有
+                int max = INT_MIN;
+                if (i - 1 >= 0 && i - 1 < income.size() &&
+                    j - 1 >= 0 && j - 1 < income[i - 1].size() &&
+                    income[i - 1][j - 1].size() == 2) {
+                    max = max > income[i - 1][j - 1][1] - prices[i] ? max : income[i - 1][j - 1][1] - prices[i];
+                }
+                if (i - 1 >= 0 && i - 1 < income.size() &&
+                    j >= 0 && j < income[i - 1].size() &&
+                    !income[i - 1][j].empty()) {
+                    max = max > income[i - 1][j][0] ? max : income[i - 1][j][0];
+                }
+                if (max > INT_MIN) {
+                    if (income.size() <= i) {
+                        income.emplace_back();
+                    }
+                    if (income[i].size() <= j) {
+                        income[i].push_back({});
+                    }
+                    income[i][j].push_back(max);
+                } else {
+                    break;
+                }
+
+                // [i天][j次交易][不持股] = max([i-1][j][不持股], [i-1][j][持股]+当天价格) 卖了或者没有
+                max = INT_MIN;
+                if (i - 1 >= 0 && i - 1 < income.size() &&
+                    j >= 1 && j < income[i - 1].size() &&
+                    !income[i - 1][j].empty()) {
+                    max = max > income[i - 1][j][0] + prices[i] ? max : income[i - 1][j][0] + prices[i];
+                }
+                if (i - 1 >= 0 && i - 1 < income.size() &&
+                    j >= 0 && j < income[i - 1].size() &&
+                    income[i - 1][j].size() == 2) {
+                    max = max > income[i - 1][j][1] ? max : income[i - 1][j][1];
+                }
+                if (max > INT_MIN) {
+                    if (income.size() <= i) {
+                        income.emplace_back();
+                    }
+                    if (income[i].size() <= j) {
+                        income[i].push_back({});
+                    }
+                    income[i][j].push_back(max);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        int result = INT_MIN;
+        for (int i = 0; i < income.size(); i++) {
+            for (int j = 0; j <= times; j++) {
+                if (j >= income[i].size()) {
+                    continue;
+                }
+                for (int k = 0; k < income[i][j].size(); k++) {
+                    result = result > income[i][j][k] ? result : income[i][j][k];
+                }
+            }
+        }
+        return result;
+    };
 };
 
 int main() {
@@ -959,5 +1096,13 @@ int main() {
     s.zigzagLevelOrder(t6);
 
     cout << s.firstUniqChar("abcdeaf") << endl;
+
+    cout << s.longestValidParentheses("()") << endl;
+
+    vector<int> raiting{1, 3, 2, 2, 1};
+    cout << s.candy(raiting) << endl;
+
+    vector<int> prices{2, 4, 1};
+    cout << s.maxProfit(2, prices) << endl;
     return 0;
 }
