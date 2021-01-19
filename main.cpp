@@ -96,7 +96,9 @@ public:
                 swap(rx, ry);
             }
             parent[ry] = rx;
-            if (rank[rx] == rank[ry]) rank[rx] += 1;//todo
+            if (rank[rx] == rank[ry]) rank[rx] += 1;
+            // 注意，这里更新不够及时，实际秩不准确了
+            // 正常需要将整个图都更新秩，但是效率低下，一般不影响结果所以无所谓了
         }
     }
 };
