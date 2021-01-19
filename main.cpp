@@ -69,6 +69,38 @@ struct Status {
     int a, b, c;
 };
 
+class Djset {
+public:
+    vector<int> parent;
+    vector<int> rank;
+
+    Djset(int n) {
+        for (int i = 0; i < n; i++) {
+            parent.push_back(i);
+            rank.push_back(0);
+        }
+    }
+
+    int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
+        }
+        return parent[x];
+    }
+
+    void merge(int x, int y) {
+        int rx = find(x);
+        int ry = find(y);
+        if (rx != ry) {
+            if (rank[rx] < rank[ry]) {
+                swap(rx, ry);
+            }
+            parent[ry] = rx;
+            if (rank[rx] == rank[ry]) rank[rx] += 1;//todo
+        }
+    }
+};
+
 class Solution {
     //前序遍历
 public:
@@ -984,6 +1016,242 @@ public:
         }
         return result;
     };
+
+// 斐波那契数列
+public:
+    int fib(int n) {
+        int fib[31] = {0, 1};
+        for (int i = 2; i <= n; i++) {
+            fib[i] = fib[i - 1] + fib[i - 2];
+        }
+        return fib[n];
+    }
+
+// 44
+public:
+    bool isMatch(string s, string p) {
+
+    }
+
+// 830
+public:
+    vector<vector<int>> largeGroupPositions(string s) {
+        vector<vector<int>> result;
+        int begin = -1, end = -1;
+        char last = 0;
+
+        for (int i = 0; i < s.size(); i++) {
+            if (s[i] != last) {
+                if (end - begin >= 2) {
+                    vector<int> position({begin, end});
+                    result.push_back(position);
+                }
+                begin = i;
+            }
+            last = s[i];
+            end = i;
+        }
+        if (end - begin >= 2) {
+            vector<int> position({begin, end});
+            result.push_back(position);
+        }
+        return result;
+    }
+
+//547
+public:
+    int findCircleNum(vector<vector<int>> &isConnected) {
+        vector<bool> used(isConnected.size(), false);
+        queue<int> node;
+        int count = 0;
+        for (int i = 0; i < isConnected.size(); i++) {
+            if (false == used[i]) {
+                node.push(i);
+                count++;
+                used[i] = true;
+            }
+            while (!node.empty()) {
+                int k = node.front();
+                cout << i << ' ';
+                node.pop();
+                for (int j = 0; j < isConnected.size(); j++) {
+                    if (isConnected[k][j] == 1 && used[j] == false) {
+                        used[j] = true;
+                        node.push(j);
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
+//189
+public:
+    void rotate(vector<int> &nums, int k) {
+        k = k % nums.size();
+        reverse(nums.begin(), nums.end());
+        if (k < nums.size()) {
+            reverse(nums.begin(), nums.begin() + k);
+            reverse(nums.begin() + k, nums.end());
+        }
+    }
+
+//1202
+public:
+    string smallestStringWithSwaps(string s, vector<vector<int>> &pairs) {
+        int n = s.size();
+        vector<char> result(n);
+        Djset ds(n);
+        //按规则合并并查集
+        for (const auto &e : pairs) ds.merge(e[0], e[1]);
+
+        //取出独立的并查集
+        unordered_map<int, vector<int> > um;
+        for (int i = 0; i < n; i++) um[ds.find(i)].push_back(i);
+
+        // 同一并查集按字典序排序
+        for (auto &i : um) {
+            int k = i.first;
+            vector<int> v = i.second;
+
+            vector<int> c = v;
+            sort(v.begin(), v.end(), [&](auto a, auto b) {
+                return s[a] < s[b];
+            });
+            for (int j = 0; j < c.size(); j++) result[c[j]] = s[v[j]];
+        }
+
+        s = "";
+        for (const auto &e : result) s += e;
+        return s;
+    }
+
+//1203
+public:
+    vector<int> sortItems(int n, int m, vector<int> &group, vector<vector<int>> &beforeItems) {
+
+    }
+
+//
+public:
+    vector<int> findRedundantConnection(vector<vector<int>> &edges) {
+        int max = 0;
+        for (auto &i : edges) {
+            for (auto &j : i) {
+                max = max > j ? max : j;
+            }
+        }
+
+        Djset ds(max + 1);
+        //按规则合并并查集
+        for (const auto &e : edges) {
+            if (ds.find(e[0]) == ds.find(e[1])) {
+                return e;
+            }
+            ds.merge(e[0], e[1]);
+        }
+        return {};
+    }
+
+//53
+public:
+    int maxSubArray(vector<int> &nums) {
+        vector<int> maxSubArray({nums[0]});
+        for (int i = 1; i < nums.size(); i++) {
+            int withLast = maxSubArray[i - 1] + nums[i];
+            maxSubArray.push_back(withLast > nums[i] ? withLast : nums[i]);
+        }
+
+        int max = nums[0];
+        for (auto &i : maxSubArray) {
+            max = max > i ? max : i;
+        }
+        return max;
+    }
+
+//62
+public:
+    int uniquePaths(int m, int n) {
+        int **paths = new int *[m];
+        for (int i = 0; i < m; i++) {
+            paths[i] = new int[n];
+            memset(paths[i], 0, sizeof(int) * n);
+        }
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                int count = 0;
+                if (i - 1 >= 0) {
+                    count += paths[i - 1][j];
+                }
+                if (j - 1 >= 0) {
+                    count += paths[i][j - 1];
+                }
+                if (i - 1 < 0 && j - 1 < 0) {
+                    count = 1;
+                }
+                paths[i][j] = count;
+            }
+        }
+
+        int result = paths[m - 1][n - 1];
+
+        for (int i = 0; i < m; i++) {
+            delete[] paths[i];
+        }
+        delete[] paths;
+        return result;
+    }
+
+//63
+public:
+    int uniquePathsWithObstacles(vector<vector<int>> &obstacleGrid) {
+        int m, n;
+        m = obstacleGrid.size();
+        if (m == 0) {
+            return 0;
+        }
+        n = obstacleGrid[0].size();
+        if (n == 0) {
+            return 0;
+        }
+
+        int **paths = new int *[m];
+        for (int i = 0; i < m; i++) {
+            paths[i] = new int[n];
+            memset(paths[i], 0, sizeof(int) * n);
+        }
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                int count = 0;
+                if (!obstacleGrid[i][j]) {
+                    if (i - 1 >= 0) {
+                        count += paths[i - 1][j];
+                    }
+                    if (j - 1 >= 0) {
+                        count += paths[i][j - 1];
+                    }
+                    if (i - 1 < 0 && j - 1 < 0) {
+                        count = 1;
+                    }
+                }
+                paths[i][j] = count;
+            }
+        }
+
+        int result = paths[m - 1][n - 1];
+
+        for (int i = 0; i < m; i++) {
+            delete[] paths[i];
+        }
+        delete[] paths;
+        return result;
+    }
+
+//64
+public:
+    int minPathSum(vector<vector<int>> &grid) {
+
+    }
 };
 
 int main() {
@@ -1104,5 +1372,31 @@ int main() {
 
     vector<int> prices{2, 4, 1};
     cout << s.maxProfit(2, prices) << endl;
+
+    cout << s.fib(3) << endl;
+
+    s.largeGroupPositions("aaa");
+
+    vector<vector<int>> isConnected({{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
+                                     {0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
+                                     {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                                     {0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
+                                     {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+                                     {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                                     {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+                                     {0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0},
+                                     {0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0},
+                                     {1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
+                                     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+                                     {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
+                                     {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+                                     {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
+                                     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}});
+    cout << s.findCircleNum(isConnected) << endl;;
+
+    vector<int> maxSubArray({-2, 1, -3, 4, -1, 2, 1, -5, 4});
+    cout << s.maxSubArray(maxSubArray) << endl;
+
+    cout << s.uniquePaths(3, 7) << endl;
     return 0;
 }
